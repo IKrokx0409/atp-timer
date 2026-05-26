@@ -20,9 +20,10 @@ class MainWindow(QWidget):
             flags |= Qt.WindowType.WindowStaysOnTopHint
 
         self.setWindowFlags(flags)
-        # Solid dark background — WSLg does not reliably composite transparency.
-        # The "space" look comes from the scene's drawBackground dark circle.
-        self.setStyleSheet("background-color: #000000;")
+        # True per-pixel transparency via Windows DWM.
+        # The scene's drawBackground paints the dark space circle;
+        # everything outside it stays fully transparent.
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         size = self.config.get("window_size", 700)
         self.resize(size, size)
