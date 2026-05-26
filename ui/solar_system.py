@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import QGraphicsScene, QGraphicsView
 
 from .bodies.sun            import Sun
 from .bodies.sun_station    import SunStation
-from .bodies.ash_twin       import AshTwin, EmberTwin
+from .bodies.ash_twin       import HourglassBarycenter, AshTwin, EmberTwin
 from .bodies.timber_hearth  import TimberHearth, Attlerock
 from .bodies.brittle_hollow import BrittleHollow, HollowsLantern
 from .bodies.giants_deep    import GiantsDeep
@@ -41,11 +41,12 @@ class SolarSystemScene(QGraphicsScene):
 
     def _build(self) -> None:
         # Instantiate — order matters: parents before children
-        self.sun             = Sun()
-        self.sun_station     = SunStation()
-        self.ash_twin        = AshTwin()
-        self.ember_twin      = EmberTwin(self.ash_twin)
-        self.timber_hearth   = TimberHearth()
+        self.sun                  = Sun()
+        self.sun_station          = SunStation()
+        self.hourglass_barycenter = HourglassBarycenter()
+        self.ash_twin             = AshTwin(self.hourglass_barycenter)
+        self.ember_twin           = EmberTwin(self.hourglass_barycenter)
+        self.timber_hearth        = TimberHearth()
         self.attlerock       = Attlerock(self.timber_hearth)
         self.brittle_hollow  = BrittleHollow()
         self.hollows_lantern = HollowsLantern(self.brittle_hollow)
@@ -53,10 +54,11 @@ class SolarSystemScene(QGraphicsScene):
         self.dark_bramble    = DarkBramble()
         self.interloper      = Interloper()
 
-        # Keep in update order (parents strictly before their moons)
+        # Keep in update order (parents strictly before their children)
         self._bodies = [
             self.sun,
             self.sun_station,
+            self.hourglass_barycenter,   # must come before the twins
             self.ash_twin,
             self.ember_twin,
             self.timber_hearth,
