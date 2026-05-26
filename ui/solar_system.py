@@ -33,6 +33,8 @@ class SolarSystemScene(QGraphicsScene):
     def __init__(self) -> None:
         super().__init__()
         self.setSceneRect(-SCENE_R, -SCENE_R, SCENE_R * 2, SCENE_R * 2)
+        # Don't let Qt pre-fill the background — drawBackground owns everything
+        self.setBackgroundBrush(Qt.BrushStyle.NoBrush)
 
         self._last_t: float | None = None
         self._bodies: list = []
@@ -110,17 +112,20 @@ class SolarSystemScene(QGraphicsScene):
     def drawBackground(self, painter: QPainter, rect: QRectF) -> None:
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # Erase everything to fully transparent so the desktop shows through
-        # outside the dark space circle (requires WA_TranslucentBackground on the view).
+        # Punch the entire rect to transparent first — corners outside the circle
+        # will stay see-through (desktop visible) thanks to WA_TranslucentBackground.
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
         painter.fillRect(rect, Qt.GlobalColor.transparent)
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
 
-        # Dark space circle — slightly lighter centre so it's distinct from desktop
+        # Soft dark-space tint: light veil in the centre, feathers out to
+        # fully transparent at the rim so the desktop bleeds through at the edges.
         bg = QRadialGradient(QPointF(0, 0), SCENE_R)
-        bg.setColorAt(0.0, QColor(28, 12, 55))
-        bg.setColorAt(0.7, QColor(14,  6, 30))
-        bg.setColorAt(1.0, QColor( 6,  2, 14))
+        bg.setColorAt(0.00, QColor(18,  8, 38, 175))  # centre ~69 % opaque
+        bg.setColorAt(0.55, QColor(12,  5, 26, 155))
+        bg.setColorAt(0.78, QColor( 7,  3, 16,  90))  # starts fading
+        bg.setColorAt(0.92, QColor( 3,  1,  8,  28))  # nearly gone
+        bg.setColorAt(1.00, QColor( 0,  0,  0,   0))  # fully transparent at rim
         painter.setBrush(QBrush(bg))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawEllipse(QPointF(0, 0), float(SCENE_R), float(SCENE_R))
@@ -156,6 +161,7 @@ class SolarSystemView(QGraphicsView):
         self.setFrameShape(self.Shape.NoFrame)
         self.setStyleSheet("background: transparent; border: none;")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setBackgroundBrush(Qt.BrushStyle.NoBrush)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.viewport().setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
