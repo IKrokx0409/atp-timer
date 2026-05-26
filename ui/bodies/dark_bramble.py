@@ -10,8 +10,8 @@ class DarkBramble(BaseBody):
         super().__init__(
             name="Dark Bramble",
             color=QColor(26, 72, 42),
-            radius=17,
-            orbit_radius=285,
-            orbit_speed=math.tau / 350,   # period ≈ 350 s
+            radius=19,
+            orbit_radius=328,
+            orbit_speed=math.tau / 355,
             start_angle=math.radians(60),
         )

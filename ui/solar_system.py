@@ -19,13 +19,13 @@ from .bodies.giants_deep    import GiantsDeep
 from .bodies.dark_bramble   import DarkBramble
 from .bodies.interloper     import Interloper
 
-SCENE_R = 330   # half-width of the scene bounding box
+SCENE_R = 350   # half-width of the scene bounding box
 
 
 class SolarSystemScene(QGraphicsScene):
 
-    # Main circular orbit radii to draw as guide rings
-    _CIRCULAR_ORBITS = [60, 100, 150, 200, 245, 285]
+    # Circular orbit guide rings (one per main-body orbit)
+    _CIRCULAR_ORBITS = [65, 118, 182, 245, 292, 328]
 
     def __init__(self) -> None:
         super().__init__()
