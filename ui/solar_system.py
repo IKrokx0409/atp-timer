@@ -118,14 +118,18 @@ class SolarSystemScene(QGraphicsScene):
         painter.fillRect(rect, Qt.GlobalColor.transparent)
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
 
-        # Soft dark-space tint: light veil in the centre, feathers out to
-        # fully transparent at the rim so the desktop bleeds through at the edges.
+        # Dark space tint — evenly-spaced stops so Qt interpolates smoothly;
+        # alpha decreases steadily from centre (~90 %) to a fully-transparent rim.
         bg = QRadialGradient(QPointF(0, 0), SCENE_R)
-        bg.setColorAt(0.00, QColor(18,  8, 38, 175))  # centre ~69 % opaque
-        bg.setColorAt(0.55, QColor(12,  5, 26, 155))
-        bg.setColorAt(0.78, QColor( 7,  3, 16,  90))  # starts fading
-        bg.setColorAt(0.92, QColor( 3,  1,  8,  28))  # nearly gone
-        bg.setColorAt(1.00, QColor( 0,  0,  0,   0))  # fully transparent at rim
+        bg.setColorAt(0.00, QColor(22, 10, 46, 232))
+        bg.setColorAt(0.18, QColor(19,  8, 40, 212))
+        bg.setColorAt(0.36, QColor(15,  6, 32, 182))
+        bg.setColorAt(0.52, QColor(11,  5, 24, 148))
+        bg.setColorAt(0.66, QColor( 7,  3, 16, 108))
+        bg.setColorAt(0.78, QColor( 4,  2, 10,  68))
+        bg.setColorAt(0.88, QColor( 2,  1,  5,  34))
+        bg.setColorAt(0.95, QColor( 1,  0,  2,  10))
+        bg.setColorAt(1.00, QColor( 0,  0,  0,   0))
         painter.setBrush(QBrush(bg))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawEllipse(QPointF(0, 0), float(SCENE_R), float(SCENE_R))
