@@ -29,3 +29,6 @@ Thumbs.db
 
 # PyQt
 *.qrc
+
+# Local notes (not for repo)
+TODO.md
