@@ -144,11 +144,9 @@ class SolarSystemView(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setFrameShape(self.Shape.NoFrame)
-        self.setStyleSheet("background: transparent; border: none;")
-
-        # Transparent viewport so the window's WA_TranslucentBackground shows
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.viewport().setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        # Solid black fill — scene drawBackground paints the dark space circle on top
+        self.setStyleSheet("background-color: #000000; border: none;")
+        self.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
 
     # ── Fit scene to view on resize ───────────────────────────────────
 

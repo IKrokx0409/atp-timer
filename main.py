@@ -12,6 +12,8 @@ def main() -> None:
     config = Config("config.json")
     window = MainWindow(config)
     window.show()
+    window.raise_()
+    window.activateWindow()
 
     sys.exit(app.exec())
 
