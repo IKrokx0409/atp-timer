@@ -1,0 +1,13 @@
+{
+  "loop_duration_minutes": 22,
+  "cycles": 4,
+  "short_break_minutes": 5,
+  "long_break_minutes": 15,
+  "always_on_top": true,
+  "window_opacity": 1.0,
+  "sound_enabled": true,
+  "volume": 0.8,
+  "supernova_animation": true,
+  "end_behavior": "restart",
+  "window_size": 700
+}
