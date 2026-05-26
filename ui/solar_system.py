@@ -6,8 +6,8 @@ Scene coordinate space: sun at (0, 0), radius ~330 units.
 """
 
 import time
-from PyQt6.QtCore  import Qt, QRectF, QPointF, QTimer
-from PyQt6.QtGui   import QPainter, QColor, QPen, QBrush, QRadialGradient
+from PyQt6.QtCore    import Qt, QRectF, QPointF, QTimer, pyqtSignal
+from PyQt6.QtGui     import QPainter, QColor, QPen, QBrush, QRadialGradient
 from PyQt6.QtWidgets import QGraphicsScene, QGraphicsView
 
 from .bodies.sun            import Sun
@@ -23,6 +23,9 @@ SCENE_R = 350   # half-width of the scene bounding box
 
 
 class SolarSystemScene(QGraphicsScene):
+
+    # Emitted with the body name whenever a planet is clicked
+    body_clicked = pyqtSignal(str)
 
     # Circular orbit guide rings (one per main-body orbit)
     _CIRCULAR_ORBITS = [82, 118, 182, 245, 292, 328]
@@ -96,8 +99,7 @@ class SolarSystemScene(QGraphicsScene):
     # ── interaction ───────────────────────────────────────────────────
 
     def _on_body_clicked(self, name: str) -> None:
-        # Placeholder: print to console until panels are wired up
-        print(f"[click] {name}")
+        self.body_clicked.emit(name)
 
     def set_clickable(self, enabled: bool) -> None:
         for body in self._bodies:
@@ -108,10 +110,13 @@ class SolarSystemScene(QGraphicsScene):
     def drawBackground(self, painter: QPainter, rect: QRectF) -> None:
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # Fill entire exposed rect first (corners outside the circle)
-        painter.fillRect(rect, QColor(0, 0, 0))
+        # Erase everything to fully transparent so the desktop shows through
+        # outside the dark space circle (requires WA_TranslucentBackground on the view).
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+        painter.fillRect(rect, Qt.GlobalColor.transparent)
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
 
-        # Dark space circle — slightly lighter centre so it's distinct from the pure-black border
+        # Dark space circle — slightly lighter centre so it's distinct from desktop
         bg = QRadialGradient(QPointF(0, 0), SCENE_R)
         bg.setColorAt(0.0, QColor(28, 12, 55))
         bg.setColorAt(0.7, QColor(14,  6, 30))
