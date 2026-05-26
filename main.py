@@ -1,9 +1,10 @@
 import sys
 import os
 
-# Force X11/XCB backend — Wayland doesn't support frameless window positioning.
-# WSLg exposes XWayland on DISPLAY=:0, so this always works in WSL2.
-os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+# On Linux/WSL force xcb (X11) — Wayland doesn't support frameless window positioning.
+# On Windows Qt auto-selects the "windows" plugin, so we only set this on Linux.
+if sys.platform.startswith("linux"):
+    os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
 
 from PyQt6.QtWidgets import QApplication
 
