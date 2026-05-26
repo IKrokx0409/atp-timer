@@ -106,11 +106,14 @@ class SolarSystemScene(QGraphicsScene):
     def drawBackground(self, painter: QPainter, rect: QRectF) -> None:
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # Dark space circle
+        # Fill entire exposed rect first (corners outside the circle)
+        painter.fillRect(rect, QColor(0, 0, 0))
+
+        # Dark space circle — slightly lighter centre so it's distinct from the pure-black border
         bg = QRadialGradient(QPointF(0, 0), SCENE_R)
-        bg.setColorAt(0.0, QColor(18,  8, 35, 235))
-        bg.setColorAt(0.6, QColor(10,  4, 22, 235))
-        bg.setColorAt(1.0, QColor( 4,  2, 10, 200))
+        bg.setColorAt(0.0, QColor(28, 12, 55))
+        bg.setColorAt(0.7, QColor(14,  6, 30))
+        bg.setColorAt(1.0, QColor( 6,  2, 14))
         painter.setBrush(QBrush(bg))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawEllipse(QPointF(0, 0), float(SCENE_R), float(SCENE_R))
@@ -144,15 +147,24 @@ class SolarSystemView(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setFrameShape(self.Shape.NoFrame)
-        # Solid black fill — scene drawBackground paints the dark space circle on top
         self.setStyleSheet("background-color: #000000; border: none;")
-        self.setBackgroundBrush(QBrush(QColor(0, 0, 0)))
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-    # ── Fit scene to view on resize ───────────────────────────────────
+    # ── Fit scene to view on resize + initial show ────────────────────
+
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        # Delay to ensure widget has its final size before fitting
+        from PyQt6.QtCore import QTimer
+        QTimer.singleShot(0, self._fit)
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
-        self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+        self._fit()
+
+    def _fit(self) -> None:
+        if self.scene():
+            self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
 
     # ── Drag-to-move window (click on empty space) ────────────────────
 
