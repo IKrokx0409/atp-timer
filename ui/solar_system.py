@@ -34,7 +34,7 @@ class SolarSystemScene(QGraphicsScene):
         super().__init__()
         self.setSceneRect(-SCENE_R, -SCENE_R, SCENE_R * 2, SCENE_R * 2)
         # Don't let Qt pre-fill the background — drawBackground owns everything
-        self.setBackgroundBrush(Qt.BrushStyle.NoBrush)
+        self.setBackgroundBrush(QBrush(Qt.BrushStyle.NoBrush))
 
         self._last_t: float | None = None
         self._bodies: list = []
@@ -161,7 +161,7 @@ class SolarSystemView(QGraphicsView):
         self.setFrameShape(self.Shape.NoFrame)
         self.setStyleSheet("background: transparent; border: none;")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setBackgroundBrush(Qt.BrushStyle.NoBrush)
+        self.setBackgroundBrush(QBrush(Qt.BrushStyle.NoBrush))
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.viewport().setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
