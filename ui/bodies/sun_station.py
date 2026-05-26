@@ -11,7 +11,7 @@ class SunStation(BaseBody):
             name="Sun Station",
             color=QColor(168, 175, 188),
             radius=5,
-            orbit_radius=65,
+            orbit_radius=82,
             orbit_speed=math.tau / 38,
             start_angle=0.0,
         )

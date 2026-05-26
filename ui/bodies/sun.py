@@ -9,7 +9,7 @@ _YELLOW = QColor(255, 225, 60)
 class Sun(BaseBody):
     """Central star — dominant presence, pulsing glow."""
 
-    _R = 32   # larger sphere radius
+    _R = 48   # sphere radius — Sun dominates the scene
 
     def __init__(self) -> None:
         super().__init__(

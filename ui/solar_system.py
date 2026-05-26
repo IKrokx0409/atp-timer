@@ -25,7 +25,7 @@ SCENE_R = 350   # half-width of the scene bounding box
 class SolarSystemScene(QGraphicsScene):
 
     # Circular orbit guide rings (one per main-body orbit)
-    _CIRCULAR_ORBITS = [65, 118, 182, 245, 292, 328]
+    _CIRCULAR_ORBITS = [82, 118, 182, 245, 292, 328]
 
     def __init__(self) -> None:
         super().__init__()
