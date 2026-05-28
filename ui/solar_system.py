@@ -7,8 +7,8 @@ Scene coordinate space: sun at (0, 0), radius ~330 units.
 
 import time
 from PyQt6.QtCore    import Qt, QRectF, QPointF, QTimer, pyqtSignal
-from PyQt6.QtGui     import QPainter, QColor, QPen, QBrush, QRadialGradient
-from PyQt6.QtWidgets import QGraphicsScene, QGraphicsView
+from PyQt6.QtGui     import QPainter, QColor, QPen, QBrush, QRadialGradient, QFont
+from PyQt6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsTextItem
 
 from .bodies.sun            import Sun
 from .bodies.sun_station    import SunStation
@@ -39,7 +39,12 @@ class SolarSystemScene(QGraphicsScene):
         self._last_t: float | None = None
         self._bodies: list = []
 
+        self._timer_state: str = "idle"
+        self._remaining_sec: float = 0.0
+        self._evolution_progress: float = 0.0
+
         self._build()
+        self._build_overlay()
         self._start_loop()
 
     # ── construction ──────────────────────────────────────────────────
@@ -81,6 +86,57 @@ class SolarSystemScene(QGraphicsScene):
         # Connect click signals (placeholder — panels attached in window.py)
         for body in self._bodies:
             body.clicked.connect(self._on_body_clicked)
+
+    def _build_overlay(self) -> None:
+        self._status_item = QGraphicsTextItem("")
+        self._status_item.setFont(QFont("Consolas", 11))
+        self._status_item.setDefaultTextColor(QColor(200, 180, 255, 170))
+        self._status_item.setZValue(10)
+        self.addItem(self._status_item)
+        self._update_status_display()
+
+    # ── timer state interface (called from MainWindow) ─────────────────
+
+    def set_timer_state(self, state: str) -> None:
+        self._timer_state = state
+        self._update_status_display()
+
+    def set_remaining(self, secs: float) -> None:
+        self._remaining_sec = secs
+        self._update_status_display()
+
+    def set_evolution(self, progress: float) -> None:
+        self._evolution_progress = progress
+
+    def trigger_supernova(self) -> None:
+        """Placeholder: briefly show session-complete message."""
+        self._timer_state = "supernova"
+        self._update_status_display()
+
+    def _fmt_time(self, secs: float) -> str:
+        s = max(0, int(secs))
+        return f"{s // 60:02d}:{s % 60:02d}"
+
+    def _update_status_display(self) -> None:
+        state = self._timer_state
+        if state == "idle":
+            text = "Space: start  |  right-click: menu"
+        elif state == "focus":
+            text = f"FOCUS  {self._fmt_time(self._remaining_sec)}"
+        elif state == "short_break":
+            text = f"SHORT BREAK  {self._fmt_time(self._remaining_sec)}"
+        elif state == "long_break":
+            text = f"LONG BREAK  {self._fmt_time(self._remaining_sec)}"
+        elif state == "paused":
+            text = f"PAUSED  {self._fmt_time(self._remaining_sec)}"
+        elif state == "supernova":
+            text = "Loop complete!"
+        else:
+            text = ""
+
+        self._status_item.setPlainText(text)
+        br = self._status_item.boundingRect()
+        self._status_item.setPos(-br.width() / 2, SCENE_R * 0.74)
 
     def _start_loop(self) -> None:
         self._timer = QTimer(self)
@@ -152,6 +208,8 @@ class SolarSystemScene(QGraphicsScene):
 
 class SolarSystemView(QGraphicsView):
 
+    context_menu_requested = pyqtSignal()
+
     def __init__(self, scene: SolarSystemScene) -> None:
         super().__init__(scene)
         self._drag_pos = None
@@ -206,3 +264,7 @@ class SolarSystemView(QGraphicsView):
     def mouseReleaseEvent(self, event) -> None:
         self._drag_pos = None
         super().mouseReleaseEvent(event)
+
+    def contextMenuEvent(self, event) -> None:
+        self.context_menu_requested.emit()
+        event.accept()

@@ -1,7 +1,9 @@
-from PyQt6.QtCore    import Qt
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QApplication
+from PyQt6.QtCore    import Qt, QTimer
+from PyQt6.QtGui     import QShortcut, QKeySequence, QCursor
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QApplication, QMenu
 
 from .solar_system import SolarSystemScene, SolarSystemView
+from core.timer    import PomodoroTimer, TimerState
 
 
 class MainWindow(QWidget):
@@ -10,6 +12,7 @@ class MainWindow(QWidget):
         super().__init__()
         self.config = config
         self._current_panel = None   # currently open floating panel (or None)
+        self.timer = PomodoroTimer(config)
         self._setup_window()
         self._setup_ui()
         self._connect_signals()
@@ -44,10 +47,25 @@ class MainWindow(QWidget):
         self.view  = SolarSystemView(self.scene)
         layout.addWidget(self.view)
 
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+
     # ── signals ───────────────────────────────────────────────────────
 
     def _connect_signals(self) -> None:
         self.scene.body_clicked.connect(self._on_body_clicked)
+
+        # Timer → scene
+        self.timer.tick.connect(self._on_timer_tick)
+        self.timer.evolution.connect(self.scene.set_evolution)
+        self.timer.state_changed.connect(self._on_state_changed)
+        self.timer.session_ended.connect(self._on_session_ended)
+
+        # Right-click context menu
+        self.view.context_menu_requested.connect(self._show_context_menu)
+
+        # Keyboard shortcuts (work when window or any child has focus)
+        QShortcut(QKeySequence(Qt.Key.Key_Space), self, self._toggle_timer)
+        QShortcut(QKeySequence(Qt.Key.Key_R),     self, self.timer.reset)
 
     def _on_body_clicked(self, name: str) -> None:
         # Close any already-open panel first
@@ -75,6 +93,62 @@ class MainWindow(QWidget):
             return TimberHearthPanel(self)
         # Other panels: placeholder — add here as they are implemented
         return None
+
+    # ── timer controls ────────────────────────────────────────────────
+
+    def _toggle_timer(self) -> None:
+        state = self.timer.state
+        if state == TimerState.IDLE:
+            self.timer.start()
+        elif state == TimerState.PAUSED:
+            self.timer.resume()
+        else:
+            self.timer.pause()
+
+    def _on_timer_tick(self, remaining: float) -> None:
+        self.scene.set_remaining(remaining)
+
+    def _on_state_changed(self, state: str) -> None:
+        self.scene.set_timer_state(state)
+        running = state in ("focus", "short_break", "long_break")
+        self.scene.set_clickable(not running)
+        if running and self._current_panel is not None:
+            self._current_panel.close()
+            self._current_panel = None
+
+    def _on_session_ended(self) -> None:
+        self.scene.trigger_supernova()
+        if self.config.get("end_behavior") == "restart":
+            QTimer.singleShot(2000, self.timer.start)
+
+    def _show_context_menu(self) -> None:
+        menu = QMenu(self)
+        menu.setStyleSheet("""
+            QMenu {
+                background-color: #160a2a;
+                color: #c8b4ff;
+                border: 1px solid #3d2a6e;
+                border-radius: 6px;
+                padding: 4px;
+            }
+            QMenu::item { padding: 6px 20px; border-radius: 4px; }
+            QMenu::item:selected { background-color: #3d2a6e; }
+            QMenu::separator { height: 1px; background: #3d2a6e; margin: 4px 8px; }
+        """)
+
+        state = self.timer.state
+        if state == TimerState.IDLE:
+            menu.addAction("Start",  self.timer.start)
+        elif state == TimerState.PAUSED:
+            menu.addAction("Resume", self.timer.resume)
+            menu.addAction("Reset",  self.timer.reset)
+        else:
+            menu.addAction("Pause",  self.timer.pause)
+            menu.addAction("Reset",  self.timer.reset)
+
+        menu.addSeparator()
+        menu.addAction("Quit", QApplication.quit)
+        menu.exec(QCursor.pos())
 
     # ── panel placement ───────────────────────────────────────────────
 
