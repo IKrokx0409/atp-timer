@@ -12,7 +12,7 @@ so parents must be advanced BEFORE their children each tick.
 """
 
 import math
-from PyQt6.QtCore import Qt, QRectF, pyqtSignal
+from PyQt6.QtCore import Qt, QRectF, pyqtSignal, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QPainter, QRadialGradient, QColor, QBrush, QPainterPath
 from PyQt6.QtWidgets import QGraphicsObject
 
@@ -43,6 +43,7 @@ class BaseBody(QGraphicsObject):
         self.parent_body  = parent_body
 
         self._clickable   = True   # disabled when timer is running
+        self._pulse_anim: QPropertyAnimation | None = None
 
         self.setZValue(2)
         self.setAcceptHoverEvents(True)
@@ -106,8 +107,20 @@ class BaseBody(QGraphicsObject):
             Qt.MouseButton.LeftButton if value else Qt.MouseButton.NoButton
         )
 
+    def _start_pulse(self) -> None:
+        anim = QPropertyAnimation(self, b"scale")
+        anim.setDuration(240)
+        anim.setKeyValueAt(0.0, 1.0)
+        anim.setKeyValueAt(0.5, 1.15)
+        anim.setKeyValueAt(1.0, 1.0)
+        anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        anim.finished.connect(lambda: self.clicked.emit(self.name))
+        self._pulse_anim = anim
+        anim.start()
+
     def mousePressEvent(self, event) -> None:
         if self._clickable and event.button() == Qt.MouseButton.LeftButton:
-            self.clicked.emit(self.name)
+            if self.scale() == 1.0:   # ignore rapid double-clicks mid-pulse
+                self._start_pulse()
         else:
             super().mousePressEvent(event)

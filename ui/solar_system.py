@@ -93,6 +93,15 @@ class SolarSystemScene(QGraphicsScene):
         self._status_item.setDefaultTextColor(QColor(200, 180, 255, 170))
         self._status_item.setZValue(10)
         self.addItem(self._status_item)
+
+        self._hint_item = QGraphicsTextItem("Click a planet to configure")
+        self._hint_item.setFont(QFont("Consolas", 9))
+        self._hint_item.setDefaultTextColor(QColor(160, 140, 200, 120))
+        self._hint_item.setZValue(10)
+        self.addItem(self._hint_item)
+        br = self._hint_item.boundingRect()
+        self._hint_item.setPos(-br.width() / 2, 62)
+
         self._update_status_display()
 
     # ── timer state interface (called from MainWindow) ─────────────────
@@ -137,6 +146,7 @@ class SolarSystemScene(QGraphicsScene):
         self._status_item.setPlainText(text)
         br = self._status_item.boundingRect()
         self._status_item.setPos(-br.width() / 2, SCENE_R * 0.74)
+        self._hint_item.setVisible(self._timer_state == "idle")
 
     def _start_loop(self) -> None:
         self._timer = QTimer(self)

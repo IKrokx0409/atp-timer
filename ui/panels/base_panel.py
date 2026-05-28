@@ -15,7 +15,7 @@ from PyQt6.QtCore    import Qt, pyqtSignal, QRectF, QPointF
 from PyQt6.QtGui     import (QPainter, QColor, QPen, QBrush,
                               QLinearGradient, QFont, QFontDatabase)
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
-                              QLabel, QPushButton, QSizePolicy)
+                              QLabel, QPushButton, QSizePolicy, QSlider)
 
 # ── Palette ───────────────────────────────────────────────────────────────────
 OW_ORANGE  = QColor("#E89030")
@@ -174,6 +174,85 @@ class BasePanel(QWidget):
         self.close()
 
     # ── convenience: styled label helpers ────────────────────────────
+
+    # ── shared slider helpers ─────────────────────────────────────────
+
+    @staticmethod
+    def _slider_style() -> str:
+        orange = OW_ORANGE.name()
+        blue   = OW_BLUE.name()
+        return f"""
+            QSlider::groove:horizontal {{
+                height: 4px;
+                background: #2A2040;
+                border-radius: 2px;
+            }}
+            QSlider::sub-page:horizontal {{
+                background: {orange};
+                border-radius: 2px;
+            }}
+            QSlider::add-page:horizontal {{
+                background: #2A2040;
+                border-radius: 2px;
+            }}
+            QSlider::handle:horizontal {{
+                background: {orange};
+                border: 2px solid {blue};
+                width: 14px;
+                height: 14px;
+                margin: -5px 0;
+                border-radius: 7px;
+            }}
+            QSlider::handle:horizontal:hover {{
+                background: {blue};
+                border-color: {orange};
+            }}
+        """
+
+    def _add_slider_row(self, section: str, lo: int, hi: int,
+                        step: int, value: int, unit: str = "",
+                        on_change=None) -> QSlider:
+        """Add labelled slider + range hint to _body_layout; return the QSlider."""
+        self._body_layout.addWidget(self._orange_label(section, size=10))
+
+        row = QHBoxLayout()
+        row.setSpacing(8)
+
+        slider = QSlider(Qt.Orientation.Horizontal)
+        slider.setRange(lo, hi)
+        slider.setSingleStep(step)
+        slider.setPageStep(max(step * 5, 1))
+        slider.setValue(value)
+        slider.setStyleSheet(self._slider_style())
+        slider.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        def _fmt(v: int) -> str:
+            return f"{v} {unit}".strip() if unit else str(v)
+
+        val_lbl = self._blue_label(_fmt(value), size=10)
+        val_lbl.setFixedWidth(52)
+        val_lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        slider.valueChanged.connect(lambda v: val_lbl.setText(_fmt(v)))
+
+        row.addWidget(slider)
+        row.addWidget(val_lbl)
+        self._body_layout.addLayout(row)
+
+        hint = QHBoxLayout()
+        lo_lbl = QLabel(_fmt(lo))
+        hi_lbl = QLabel(_fmt(hi))
+        for lbl in (lo_lbl, hi_lbl):
+            lbl.setFont(ow_font(8))
+            lbl.setStyleSheet("color: #7060A0; background: transparent;")
+        hint.addWidget(lo_lbl)
+        hint.addStretch()
+        hint.addWidget(hi_lbl)
+        self._body_layout.addLayout(hint)
+
+        if on_change:
+            slider.valueChanged.connect(on_change)
+
+        return slider
 
     @staticmethod
     def _orange_label(text: str, size: int = 10) -> QLabel:

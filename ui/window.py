@@ -91,7 +91,15 @@ class MainWindow(QWidget):
         if name == "Timber Hearth":
             from .panels.timber_hearth_panel import TimberHearthPanel
             return TimberHearthPanel(self)
-        # Other panels: placeholder — add here as they are implemented
+        if name in ("Ash Twin", "Ember Twin"):
+            from .panels.ash_twin_panel import AshTwinPanel
+            return AshTwinPanel(self)
+        if name == "Giant's Deep":
+            from .panels.giants_deep_panel import GiantsDeepPanel
+            return GiantsDeepPanel(self)
+        if name == "Brittle Hollow":
+            from .panels.brittle_hollow_panel import BrittleHollowPanel
+            return BrittleHollowPanel(self)
         return None
 
     # ── timer controls ────────────────────────────────────────────────
